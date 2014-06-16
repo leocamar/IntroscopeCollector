@@ -36,6 +36,7 @@ public class ResourceUtils {
 		public static final String INTROSCOPE_NODE_START = "introscope.node.start";
 		
 		public static final String COLLECT_INTERVAL = "collect.interval";
+		public static final String DISCOVERY_INTERVAL = "discovery.interval";
 		
 		public static final String DATE_FORMAT = "MM/dd/yy HH:mm:ss";
 		

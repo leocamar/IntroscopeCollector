@@ -1,9 +1,9 @@
 package br.com.inmetrics.edp;
 
-import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import br.com.inmetrics.edp.core.Discovery;
 import br.com.inmetrics.edp.core.Executor;
 import br.com.inmetrics.edp.util.parser.ParserMetricName;
 import br.com.inmetrics.edp.util.properties.ResourceUtils.Constants;
@@ -21,7 +21,9 @@ public class EntryPoint {
 		ParserMetricName parser;
 		Sender sender;
 		TimerTask executor;
-		Timer timer;
+		TimerTask discovery;
+		Timer timer = new Timer();
+		;
 		final Thread parserThread;
 		final Thread senderThread;
 
@@ -32,11 +34,16 @@ public class EntryPoint {
 				introscopeCollector.getResourceUtils());
 
 		executor = new Executor(introscopeCollector.getResourceUtils(), queues);
-		timer = new Timer();
+		discovery = new Discovery(introscopeCollector.getResourceUtils(),
+				queues);
 
 		timer.schedule(executor, 5000,
 				Integer.valueOf(introscopeCollector.getResourceUtils()
 						.getProperty(Constants.COLLECT_INTERVAL)) * 1000);
+
+		timer.schedule(discovery, 5000,
+				Integer.valueOf(introscopeCollector.getResourceUtils()
+						.getProperty(Constants.DISCOVERY_INTERVAL)) * 1000);
 
 		sender = new Sender(queues, introscopeCollector.getResourceUtils());
 
@@ -45,7 +52,6 @@ public class EntryPoint {
 
 		senderThread = new Thread(sender);
 		senderThread.start();
-		
 
 	}
 
