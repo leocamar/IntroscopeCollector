@@ -46,21 +46,6 @@ public class EntryPoint {
 		senderThread = new Thread(sender);
 		senderThread.start();
 		
-		Runtime.getRuntime().addShutdownHook(new Thread(){
-			@Override
-			public void run (){
-				try {
-					
-					senderThread.join();
-					parserThread.join();
-					
-					System.out.println("Agent Shutdown at"+new Date());
-					
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		});
 
 	}
 
