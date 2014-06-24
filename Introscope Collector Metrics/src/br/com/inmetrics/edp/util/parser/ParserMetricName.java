@@ -38,41 +38,52 @@ public class ParserMetricName implements Runnable {
 
 			if (!this.inputResult.isEmpty()) {
 				resultSet = (ResultSet) inputResult.poll();
-				
-				metricsSumarized = new ConcurrentHashMap<String, String>();
 
 				try {
-					while (resultSet.next()) {
+					if (resultSet != null) {
 
-						metricsSumarized.put("host",
-								agentServerMap.get(resultSet.getString(4)));
+						metricsSumarized = new ConcurrentHashMap<String, String>();
 
-						String metricUnique = new String(resultSet.getString(5)
-								.replaceAll("[\\_\\-\\|\\@]", "."));
-						
-						if (resourceUtils.getProperty(Constants.INTROSCOPE_LIST_METRICS).equals("true")){
-							System.out.println(metricUnique);
+						while (resultSet.next()) {
+
+							metricsSumarized.put("host",
+									agentServerMap.get(resultSet.getString(4)));
+
+							String metricUnique = new String(resultSet
+									.getString(5).replaceAll("[\\_\\-\\|\\@]",
+											"."));
+
+							if (resourceUtils.getProperty(
+									Constants.INTROSCOPE_LIST_METRICS).equals(
+									"true")) {
+								System.out.println(metricUnique);
+							}
+
+							if (!metricsSumarized.containsKey(metricUnique)) {
+								metricsSumarized.put(metricUnique,
+										resultSet.getString(16));
+							} else if (Integer
+									.valueOf(
+											(String) metricsSumarized
+													.get(metricUnique))
+									.intValue() < Integer.valueOf(
+									resultSet.getString(16)).intValue()) {
+								metricsSumarized.replace(metricUnique,
+										resultSet.getString(16));
+
+							}
+
 						}
 
-						if (!metricsSumarized.containsKey(metricUnique)) {
-							metricsSumarized.put(metricUnique,
-									resultSet.getString(16));
-						} else if (Integer.valueOf(
-								(String) metricsSumarized.get(metricUnique))
-								.intValue() < Integer.valueOf(
-								resultSet.getString(16)).intValue()) {
-							metricsSumarized.replace(metricUnique,
-									resultSet.getString(16));
-
+						if (resourceUtils.getProperty(
+								Constants.INTROSCOPE_LIST_METRICS).equals(
+								"true")) {
+							System.exit(0);
 						}
 
-					}
-					
-					if (resourceUtils.getProperty(Constants.INTROSCOPE_LIST_METRICS).equals("true")){
-						System.exit(0);
-					}
+						this.outputResult.add(metricsSumarized);
 
-					this.outputResult.add(metricsSumarized);
+					}
 
 				} catch (SQLException e) {
 					e.printStackTrace();

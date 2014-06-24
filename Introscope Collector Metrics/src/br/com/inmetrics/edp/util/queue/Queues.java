@@ -8,12 +8,14 @@ public class Queues {
 
 	private LinkedBlockingQueue<ResultSet> resultSets;
 	private LinkedBlockingQueue<ConcurrentHashMap<String, String>> outputQueue;
-	private LinkedBlockingQueue<ResultSet> discoveryList;
+	private LinkedBlockingQueue<ResultSet> discoveryListIn;
+	private LinkedBlockingQueue<String> discoveryListOut;
 
 	public Queues() {
 		this.resultSets = new LinkedBlockingQueue<ResultSet>();
 		this.outputQueue = new LinkedBlockingQueue<ConcurrentHashMap<String, String>>();
-		this.discoveryList = new LinkedBlockingQueue<ResultSet>();
+		this.discoveryListIn = new LinkedBlockingQueue<ResultSet>();
+		this.discoveryListOut = new LinkedBlockingQueue<String>();
 	}
 
 	public LinkedBlockingQueue<ResultSet> getResultSets() {
@@ -33,11 +35,27 @@ public class Queues {
 	}
 
 	public LinkedBlockingQueue<ResultSet> getDiscoveryList() {
-		return discoveryList;
+		return discoveryListIn;
 	}
 
 	public void setDiscoveryList(LinkedBlockingQueue<ResultSet> discoveryList) {
-		this.discoveryList = discoveryList;
+		this.discoveryListIn = discoveryList;
+	}
+
+	public LinkedBlockingQueue<ResultSet> getDiscoveryListIn() {
+		return discoveryListIn;
+	}
+
+	public void setDiscoveryListIn(LinkedBlockingQueue<ResultSet> discoveryListIn) {
+		this.discoveryListIn = discoveryListIn;
+	}
+
+	public LinkedBlockingQueue<String> getDiscoveryListOut() {
+		return discoveryListOut;
+	}
+
+	public void setDiscoveryListOut(LinkedBlockingQueue<String> discoveryListOut) {
+		this.discoveryListOut = discoveryListOut;
 	}
 	
 	

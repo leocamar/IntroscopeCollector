@@ -12,6 +12,7 @@ import br.com.inmetrics.edp.util.properties.ResourceUtils;
 import br.com.inmetrics.edp.util.properties.ResourceUtils.Constants;
 import br.com.inmetrics.edp.util.queue.Queues;
 import br.com.inmetrics.edp.zabbix.sender.ZabbixSender.ZabbixSenderItem;
+import br.com.inmetrics.edp.zabbix.sender.ZabbixSender.ZabbixSenderItemDiscovery;
 import br.com.inmetrics.edp.zabbix.sender.ZabbixSender.ZabbixSenderResponse;
 
 public class Sender implements Runnable {
@@ -34,41 +35,79 @@ public class Sender implements Runnable {
 				Integer.valueOf(resourceUtils
 						.getProperty(Constants.ZABBIX_PORT)));
 		ZabbixSenderResponse response = null;
+		ArrayList<ZabbixSenderItemDiscovery> itemDiscoveries;
+		ZabbixSenderItemDiscovery senderItemDiscovery;
 
 		while (true) {
 			ConcurrentHashMap<String, String> result;
 			String host = "";
-			if (!outputResult.isEmpty()) {
+			 if (!outputResult.isEmpty()) {
+			
+			 result = (ConcurrentHashMap<String, String>) outputResult
+			 .poll();
+			 host = result.get("host");
+			 Iterator<String> resuIterator = result.keySet().iterator();
+			 ArrayList<String> keys = new ArrayList<>();
+			
+			 while (resuIterator.hasNext()) {
+			 String key = resuIterator.next();
+			 if (!key.equals("host"))
+			 keys.add(key);
+			 }
+			
+			 Date date = new Date();
+			 SimpleDateFormat format = new SimpleDateFormat(
+			 Constants.DATE_FORMAT);
+			 ArrayList<ZabbixSenderItem> senderItens = new ArrayList<>();
+			 ZabbixSenderItem senderItem = null;
+			 for (String key : keys) {
+			 senderItem = new
+			 ZabbixSenderItem(host,"cuscom.service["+key+"]",
+			 result.get(key));
+			 senderItens.add(senderItem);
+			 }
+			 senderItem = new ZabbixSenderItem("sap_teste",
+			 "introscope.collector.ping", "1");
+			 senderItens.add(senderItem);
+			
+			 try {
+			 response = sender.sendItems(senderItens);
+			 System.out.println(!response.toString().substring(21, 29)
+			 .equals("Failed 0") ? format.format(date)
+			 + " : Falhou: " + senderItem.toString() : format
+			 .format(date) + " : " + response.toString());
+			 } catch (IOException e) {
+			 e.printStackTrace();
+			 }
+			
+			 }
 
-				result = (ConcurrentHashMap<String, String>) outputResult
-						.poll();
-				host = result.get("host");
-				Iterator<String> resuIterator = result.keySet().iterator();
-				ArrayList<String> keys = new ArrayList<>();
+			if (!queues.getDiscoveryListOut().isEmpty()) {
+				ArrayList<String> newKeys = new ArrayList<>();
+				queues.getDiscoveryListOut().drainTo(newKeys);
+				itemDiscoveries = new ArrayList<>();
 
-				while (resuIterator.hasNext()) {
-					String key = resuIterator.next();
-					if (!key.equals("host"))
-						keys.add(key);
+				for (String value : newKeys) {
+					senderItemDiscovery = new ZabbixSenderItemDiscovery(
+							"{#SERVICE}", value, "{#TYPE}",value);
+					itemDiscoveries.add(senderItemDiscovery);
 				}
 
 				Date date = new Date();
 				SimpleDateFormat format = new SimpleDateFormat(
 						Constants.DATE_FORMAT);
-				ArrayList<ZabbixSenderItem> senderItens = new ArrayList<>();
-				ZabbixSenderItem senderItem = null;
-				for (String key : keys) {
-					senderItem = new ZabbixSenderItem(host, key,
-							result.get(key));
-					senderItens.add(senderItem);
-				}
-				senderItem = new ZabbixSenderItem(host,"introscope.collector.ping","1");
-				senderItens.add(senderItem);
+
+				String jsonData = sender.sendItemsDiscovery(itemDiscoveries);
+				ZabbixSenderItem item = new ZabbixSenderItem("sap_teste",
+						"cuscom.service.discovey", jsonData);
+				System.out.println(item.toString());
+				ArrayList<ZabbixSenderItem> senderItem = new ArrayList<>();
+				senderItem.add(item);
 
 				try {
-					response = sender.sendItems(senderItens);
-					System.out.println(response.toString().substring(21, 29)
-							.equals("Failed 1") ? format.format(date)
+					response = sender.sendItems(item);
+					System.out.println(!response.toString().substring(21, 29)
+							.equals("Failed 0") ? format.format(date)
 							+ " : Falhou: " + senderItem.toString() : format
 							.format(date) + " : " + response.toString());
 				} catch (IOException e) {

@@ -7,6 +7,8 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import org.bouncycastle.asn1.ocsp.Request;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class ZabbixSender {
@@ -45,11 +47,34 @@ public class ZabbixSender {
 		requestObj.put("data", items);
 		return send(requestObj.toString());
 	}
+	
+	public ZabbixSenderResponse sendItems(ZabbixSenderItem... items)
+			throws IOException {
+
+		JSONObject requestObj = new JSONObject();
+		requestObj.put("request", "sender data");
+		requestObj.put("data", items);
+		return send(requestObj.toString());
+	}
+	
+	public String sendItemsDiscovery(ArrayList<ZabbixSenderItemDiscovery> items){
+		JSONObject jsonObject = new JSONObject();
+		for (ZabbixSenderItemDiscovery item : items){
+			jsonObject.append(item.getKey_1(), item.getValue_1());
+		}
+		JSONObject request = new JSONObject();
+		request.put("data", jsonObject);
+		System.out.println("teste::::"+ request.toString());
+
+		return request.toString();
+	}
 
 	protected ZabbixSenderResponse send(String jsonMessage) throws IOException {
 		byte[] data = jsonMessage.getBytes("utf-8");
 		int v = data.length;
-
+		
+		System.out.println("Send Method:::"+jsonMessage);
+		
 		Socket sock = new Socket();
 		sock.setSoTimeout(30000);
 		sock.connect(new InetSocketAddress(zabbixServer, port), 30000);
@@ -171,6 +196,61 @@ public class ZabbixSender {
 			return response + ": " + info;
 		}
 
+	}
+	
+	public static class ZabbixSenderItemDiscovery{
+		private String key_1;
+		private String value_1;
+		private String key_2;
+		private String value_2;
+		
+		public ZabbixSenderItemDiscovery(String key_1, String value_1,String key_2, String value_2){
+			this.key_1 = key_1;
+			this.value_1 = value_1;
+			this.key_2 = key_2;
+			this.value_2 = value_2;
+		}
+
+		public String getKey_1() {
+			return key_1;
+		}
+
+		public void setKey_1(String key_1) {
+			this.key_1 = key_1;
+		}
+
+		public String getValue_1() {
+			return value_1;
+		}
+
+		public void setValue_1(String value_1) {
+			this.value_1 = value_1;
+		}
+
+		public String getKey_2() {
+			return key_2;
+		}
+
+		public void setKey_2(String key_2) {
+			this.key_2 = key_2;
+		}
+
+		public String getValue_2() {
+			return value_2;
+		}
+
+		public void setValue_2(String value_2) {
+			this.value_2 = value_2;
+		}
+
+		@Override
+		public String toString() {
+			return "ZabbixSenderItemDiscovery [key_1=" + key_1 + ", value_1="
+					+ value_1 + ", key_2=" + key_2 + ", value_2=" + value_2
+					+ "]";
+		}
+		
+		
 	}
 
 	public static class ZabbixSenderItem {
