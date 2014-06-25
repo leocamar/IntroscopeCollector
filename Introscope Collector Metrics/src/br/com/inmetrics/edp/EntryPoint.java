@@ -36,17 +36,16 @@ public class EntryPoint {
 		parser = new ParserMetricName(queues,
 				introscopeCollector.getResourceUtils());
 
-		parserDiscovery = new ParserDiscovery(queues);
+		parserDiscovery = new ParserDiscovery(queues,
+				introscopeCollector.getResourceUtils());
 
 		executor = new Executor(introscopeCollector.getResourceUtils(), queues);
 		discovery = new Discovery(introscopeCollector.getResourceUtils(),
 				queues);
 
-		
-		//TODO VOltar para o Collect_Interval
-		 timer.schedule(executor, 5000,
-		 Integer.valueOf(introscopeCollector.getResourceUtils()
-		 .getProperty(Constants.DISCOVERY_INTERVAL)) * 1000);
+		timer.schedule(executor, 5000,
+				Integer.valueOf(introscopeCollector.getResourceUtils()
+						.getProperty(Constants.COLLECT_INTERVAL)) * 1000);
 
 		timer.schedule(discovery, 5000,
 				Integer.valueOf(introscopeCollector.getResourceUtils()

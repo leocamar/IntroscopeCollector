@@ -7,8 +7,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 
-import org.bouncycastle.asn1.ocsp.Request;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class ZabbixSender {
@@ -47,7 +45,7 @@ public class ZabbixSender {
 		requestObj.put("data", items);
 		return send(requestObj.toString());
 	}
-	
+
 	public ZabbixSenderResponse sendItems(ZabbixSenderItem... items)
 			throws IOException {
 
@@ -56,25 +54,25 @@ public class ZabbixSender {
 		requestObj.put("data", items);
 		return send(requestObj.toString());
 	}
-	
-	public String sendItemsDiscovery(ArrayList<ZabbixSenderItemDiscovery> items){
-		JSONObject jsonObject = new JSONObject();
-		for (ZabbixSenderItemDiscovery item : items){
-			jsonObject.append(item.getKey_1(), item.getValue_1());
-		}
-		JSONObject request = new JSONObject();
-		request.put("data", jsonObject);
-		System.out.println("teste::::"+ request.toString());
 
-		return request.toString();
+	public String sendItemsDiscovery(ArrayList<ZabbixSenderItemDiscovery> items) {
+		StringBuilder jsonData = new StringBuilder();
+		jsonData.append("{\n\t\"data\":[");
+
+		for (ZabbixSenderItemDiscovery item : items) {
+			jsonData.append("\n\t\t{\n\t\t\t\"{#SERVICE}\":\""
+					+ item.getValue() + "\"},");
+		}
+		jsonData.deleteCharAt(jsonData.length() - 1);
+		jsonData.append("]}");
+
+		return jsonData.toString();
 	}
 
 	protected ZabbixSenderResponse send(String jsonMessage) throws IOException {
 		byte[] data = jsonMessage.getBytes("utf-8");
 		int v = data.length;
-		
-		System.out.println("Send Method:::"+jsonMessage);
-		
+
 		Socket sock = new Socket();
 		sock.setSoTimeout(30000);
 		sock.connect(new InetSocketAddress(zabbixServer, port), 30000);
@@ -110,35 +108,35 @@ public class ZabbixSender {
 
 			System.arraycopy(data, 0, messageBytes, 13, v);
 
-//			 StringBuffer sb = new StringBuffer();
-//			
-//			 for (int i = 0; i < messageBytes.length; i++) {
-//			
-//			 char byte1 = (char) (messageBytes[i]);
-//			 if (byte1 < 0) {
-//			 byte1 += 128;
-//			 }
-//			 int hi = (int) ((byte1 & 0xF0) >> 4);
-//			 int lo = (int) (byte1 & 0x0F);
-//			
-//			 char chi;
-//			 char clo;
-//			
-//			 if (hi < 10) {
-//			 chi = (char) (48 + hi);
-//			 } else {
-//			 chi = (char) (55 + hi);
-//			 }
-//			
-//			 if (lo < 10) {
-//			 clo = (char) (48 + lo);
-//			 } else {
-//			 clo = (char) (55 + lo);
-//			 }
-//			 sb.append(chi).append(clo);
-//			 }
-//			
-//			 System.out.println(sb.toString());
+			// StringBuffer sb = new StringBuffer();
+			//
+			// for (int i = 0; i < messageBytes.length; i++) {
+			//
+			// char byte1 = (char) (messageBytes[i]);
+			// if (byte1 < 0) {
+			// byte1 += 128;
+			// }
+			// int hi = (int) ((byte1 & 0xF0) >> 4);
+			// int lo = (int) (byte1 & 0x0F);
+			//
+			// char chi;
+			// char clo;
+			//
+			// if (hi < 10) {
+			// chi = (char) (48 + hi);
+			// } else {
+			// chi = (char) (55 + hi);
+			// }
+			//
+			// if (lo < 10) {
+			// clo = (char) (48 + lo);
+			// } else {
+			// clo = (char) (55 + lo);
+			// }
+			// sb.append(chi).append(clo);
+			// }
+			//
+			// System.out.println(sb.toString());
 
 			out.write(messageBytes);
 			out.flush();
@@ -197,60 +195,32 @@ public class ZabbixSender {
 		}
 
 	}
-	
-	public static class ZabbixSenderItemDiscovery{
-		private String key_1;
-		private String value_1;
-		private String key_2;
-		private String value_2;
-		
-		public ZabbixSenderItemDiscovery(String key_1, String value_1,String key_2, String value_2){
-			this.key_1 = key_1;
-			this.value_1 = value_1;
-			this.key_2 = key_2;
-			this.value_2 = value_2;
+
+	public static class ZabbixSenderItemDiscovery {
+		private String key;
+		private String value;
+
+		public ZabbixSenderItemDiscovery(String key, String value) {
+			this.key = key;
+			this.value = value;
 		}
 
-		public String getKey_1() {
-			return key_1;
+		public String getKey() {
+			return key;
 		}
 
-		public void setKey_1(String key_1) {
-			this.key_1 = key_1;
+		public void setKey(String key) {
+			this.key = key;
 		}
 
-		public String getValue_1() {
-			return value_1;
+		public String getValue() {
+			return value;
 		}
 
-		public void setValue_1(String value_1) {
-			this.value_1 = value_1;
+		public void setValue(String value) {
+			this.value = value;
 		}
 
-		public String getKey_2() {
-			return key_2;
-		}
-
-		public void setKey_2(String key_2) {
-			this.key_2 = key_2;
-		}
-
-		public String getValue_2() {
-			return value_2;
-		}
-
-		public void setValue_2(String value_2) {
-			this.value_2 = value_2;
-		}
-
-		@Override
-		public String toString() {
-			return "ZabbixSenderItemDiscovery [key_1=" + key_1 + ", value_1="
-					+ value_1 + ", key_2=" + key_2 + ", value_2=" + value_2
-					+ "]";
-		}
-		
-		
 	}
 
 	public static class ZabbixSenderItem {
